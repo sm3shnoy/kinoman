@@ -25,23 +25,6 @@ const siteMainElement = document.querySelector('.main');
 const siteHeaderElement = document.querySelector('.header');
 const siteFooterElement = document.querySelector('.footer');
 
-render(siteHeaderElement, new ProfileView().getElement(), RenderPosition.BEFOREEND);
-render(siteMainElement, new FiltersView(filters).getElement(), RenderPosition.BEFOREEND);
-
-if (movies.length <= 0) {
-  render(siteMainElement, new MovieEmptyListView().getElement(), RenderPosition.BEFOREEND);
-} else {
-  render(siteMainElement, new SortView().getElement(), RenderPosition.BEFOREEND);
-}
-
-const board = new BoardView();
-const movieListContainer = new MovieListContainerView();
-const movieList = new MovieListView();
-
-render(siteMainElement, board.getElement(), RenderPosition.BEFOREEND);
-render(board.getElement(), movieListContainer.getElement(), RenderPosition.BEFOREEND);
-render(movieListContainer.getElement(), movieList.getElement(), RenderPosition.BEFOREEND);
-
 const renderMovie = (movieListElement, movie) => {
   const movieComponent = new MovieView(movie);
 
@@ -75,31 +58,44 @@ const renderMovie = (movieListElement, movie) => {
   movieComponent.getElement().addEventListener('click', openPopup);
 };
 
-for (let i = 0; i < Math.min(movies.length, MOVIES_COUNT_PER_STEP); i++) {
-  renderMovie(movieList.getElement(), movies[i]);
-}
+const renderBoard = (boardContainer, boardMovies) => {
+  const board = new BoardView();
+  const movieListContainer = new MovieListContainerView();
+  const movieList = new MovieListView();
 
-if (movies.length > MOVIES_COUNT_PER_STEP) {
-  let renderedMoviesCount = MOVIES_COUNT_PER_STEP;
-  const showMoreButton = new ShowMoreButtonView();
-  render(movieListContainer.getElement(), showMoreButton.getElement(), RenderPosition.BEFOREEND);
+  render(boardContainer, board.getElement(), RenderPosition.BEFOREEND);
+  render(board.getElement(), new SortView().getElement(), RenderPosition.BEFOREEND);
+  render(board.getElement(), movieListContainer.getElement(), RenderPosition.BEFOREEND);
+  render(movieListContainer.getElement(), movieList.getElement(), RenderPosition.BEFOREEND);
 
-  showMoreButton.getElement().addEventListener('click', (evt) => {
-    evt.preventDefault();
+  if (boardMovies.length <= 0) {
+    render(board.getElement(), new MovieEmptyListView().getElement(), RenderPosition.BEFOREEND);
+    return;
+  }
 
-    movies
-      .slice(renderedMoviesCount, renderedMoviesCount + MOVIES_COUNT_PER_STEP)
-      .forEach((movie) => renderMovie(movieList.getElement(), movie));
+  boardMovies
+    .slice(0, Math.min(movies.length, MOVIES_COUNT_PER_STEP))
+    .forEach((boardMovie) => renderMovie(movieList.getElement(), boardMovie));
 
-    renderedMoviesCount += MOVIES_COUNT_PER_STEP;
+  if (boardMovies.length > MOVIES_COUNT_PER_STEP) {
+    let renderedMoviesCount = MOVIES_COUNT_PER_STEP;
+    const showMoreButton = new ShowMoreButtonView();
+    render(movieListContainer.getElement(), showMoreButton.getElement(), RenderPosition.BEFOREEND);
 
-    if (movies.length <= renderedMoviesCount) {
-      showMoreButton.getElement().remove();
-    }
-  });
-}
-if (movies.length > 0) {
-  render(siteMainElement, new MovieEmptyListView().getElement(), RenderPosition.BEFOREEND);
+    showMoreButton.getElement().addEventListener('click', (evt) => {
+      evt.preventDefault();
+
+      movies
+        .slice(renderedMoviesCount, renderedMoviesCount + MOVIES_COUNT_PER_STEP)
+        .forEach((boardMovie) => renderMovie(movieList.getElement(), boardMovie));
+
+      renderedMoviesCount += MOVIES_COUNT_PER_STEP;
+
+      if (boardMovies.length <= renderedMoviesCount) {
+        showMoreButton.getElement().remove();
+      }
+    });
+  }
 
   const topRatedMovieListContainer = new MovieListContainerView('Top rated', true);
   const mostCommentedMovieListContainer = new MovieListContainerView('Most commented', true);
@@ -118,6 +114,11 @@ if (movies.length > 0) {
   for (let i = 0; i < MOVIES_COUNT_EXTRA; i++) {
     renderMovie(mostCommentedMovieList.getElement(), movies[i]);
   }
-}
 
-render(siteFooterElement, new MovieCounterView(movies.length).getElement(), RenderPosition.BEFOREEND);
+  render(siteFooterElement, new MovieCounterView(movies.length).getElement(), RenderPosition.BEFOREEND);
+};
+
+render(siteHeaderElement, new ProfileView().getElement(), RenderPosition.BEFOREEND);
+render(siteMainElement, new FiltersView(filters).getElement(), RenderPosition.BEFOREEND);
+
+renderBoard(siteMainElement, movies);
