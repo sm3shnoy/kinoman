@@ -12,6 +12,7 @@ import { generateMovie } from './mock/movie';
 import MoviePopupView from './view/movie-popup';
 import { generateFilter } from './mock/filter';
 import MovieListContainerView from './view/movie-list-container';
+import MovieEmptyListView from './view/movie-empty-list';
 
 const MOVIES_COUNT = 12;
 const MOVIES_COUNT_EXTRA = 2;
@@ -26,7 +27,12 @@ const siteFooterElement = document.querySelector('.footer');
 
 render(siteHeaderElement, new ProfileView().getElement(), RenderPosition.BEFOREEND);
 render(siteMainElement, new FiltersView(filters).getElement(), RenderPosition.BEFOREEND);
-render(siteMainElement, new SortView().getElement(), RenderPosition.BEFOREEND);
+
+if (movies.length <= 0) {
+  render(siteMainElement, new MovieEmptyListView().getElement(), RenderPosition.BEFOREEND);
+} else {
+  render(siteMainElement, new SortView().getElement(), RenderPosition.BEFOREEND);
+}
 
 const board = new BoardView();
 const movieListContainer = new MovieListContainerView();
@@ -92,23 +98,26 @@ if (movies.length > MOVIES_COUNT_PER_STEP) {
     }
   });
 }
+if (movies.length > 0) {
+  render(siteMainElement, new MovieEmptyListView().getElement(), RenderPosition.BEFOREEND);
 
-const topRatedMovieListContainer = new MovieListContainerView('Top rated', true);
-const mostCommentedMovieListContainer = new MovieListContainerView('Most commented', true);
-const topRatedMovieList = new MovieListView();
-const mostCommentedMovieList = new MovieListView();
+  const topRatedMovieListContainer = new MovieListContainerView('Top rated', true);
+  const mostCommentedMovieListContainer = new MovieListContainerView('Most commented', true);
+  const topRatedMovieList = new MovieListView();
+  const mostCommentedMovieList = new MovieListView();
 
-render(board.getElement(), topRatedMovieListContainer.getElement(), RenderPosition.BEFOREEND);
-render(board.getElement(), mostCommentedMovieListContainer.getElement(), RenderPosition.BEFOREEND);
-render(topRatedMovieListContainer.getElement(), topRatedMovieList.getElement(), RenderPosition.BEFOREEND);
-render(mostCommentedMovieListContainer.getElement(), mostCommentedMovieList.getElement(), RenderPosition.BEFOREEND);
+  render(board.getElement(), topRatedMovieListContainer.getElement(), RenderPosition.BEFOREEND);
+  render(board.getElement(), mostCommentedMovieListContainer.getElement(), RenderPosition.BEFOREEND);
+  render(topRatedMovieListContainer.getElement(), topRatedMovieList.getElement(), RenderPosition.BEFOREEND);
+  render(mostCommentedMovieListContainer.getElement(), mostCommentedMovieList.getElement(), RenderPosition.BEFOREEND);
 
-for (let i = 0; i < MOVIES_COUNT_EXTRA; i++) {
-  renderMovie(topRatedMovieList.getElement(), movies[i]);
-}
+  for (let i = 0; i < MOVIES_COUNT_EXTRA; i++) {
+    renderMovie(topRatedMovieList.getElement(), movies[i]);
+  }
 
-for (let i = 0; i < MOVIES_COUNT_EXTRA; i++) {
-  renderMovie(mostCommentedMovieList.getElement(), movies[i]);
+  for (let i = 0; i < MOVIES_COUNT_EXTRA; i++) {
+    renderMovie(mostCommentedMovieList.getElement(), movies[i]);
+  }
 }
 
 render(siteFooterElement, new MovieCounterView(movies.length).getElement(), RenderPosition.BEFOREEND);
