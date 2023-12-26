@@ -1,6 +1,22 @@
 import dayjs from 'dayjs';
-import { transformDuration } from '../utils/common';
+import { transformDuration, createElement } from '../utils/common';
 import { staticComments } from '../mock/comments';
+
+const BLANK_MOVIE = {
+  releaseDate: null,
+  duration: null,
+  title: '',
+  originalTitle: '',
+  rating: 0,
+  ageRating: 0,
+  director: '',
+  writters: [],
+  actors: [],
+  country: '',
+  genres: [],
+  poster: '',
+  description: '',
+};
 
 const createGenresTemplate = (genres) => {
   const genreElements = genres.map((item) => `<span class="film-details__genre">${item}</span>`).join('');
@@ -136,7 +152,7 @@ const createInfoTemplate = (movie) => {
 </div>`;
 };
 
-export const createNewCommentTemplate = () => {
+const createNewCommentTemplate = () => {
   return `<div class="film-details__new-comment">
   <div class="film-details__add-emoji-label"></div>
 
@@ -168,7 +184,7 @@ export const createNewCommentTemplate = () => {
 </div>`;
 };
 
-export const createMoviePopupTemplate = (movie) => {
+const createMoviePopupTemplate = (movie) => {
   const { numberComments, comments, isWatchlist, isFavorite, isWatched } = movie;
 
   return `<section class="film-details">
@@ -194,3 +210,26 @@ export const createMoviePopupTemplate = (movie) => {
 </form>
 </section>`;
 };
+
+export default class MoviePopup {
+  constructor(movie = BLANK_MOVIE) {
+    this._element = null;
+    this._movie = movie;
+  }
+
+  getTemplate() {
+    return createMoviePopupTemplate(this._movie);
+  }
+
+  getElement() {
+    if (!this._element) {
+      this._element = createElement(this.getTemplate());
+    }
+
+    return this._element;
+  }
+
+  removeElement() {
+    this._element = null;
+  }
+}

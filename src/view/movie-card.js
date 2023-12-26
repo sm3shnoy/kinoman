@@ -1,7 +1,7 @@
 import dayjs from 'dayjs';
-import { transformDuration } from '../utils/common';
+import { transformDuration, createElement } from '../utils/common';
 
-export const createMovieCardTemplate = (movie) => {
+const createMovieCardTemplate = (movie) => {
   const {
     title,
     rating,
@@ -44,3 +44,26 @@ export const createMovieCardTemplate = (movie) => {
 </div>
 </article>`;
 };
+
+export default class Movie {
+  constructor(movie) {
+    this._element = null;
+    this._movie = movie;
+  }
+
+  getTemplate() {
+    return createMovieCardTemplate(this._movie);
+  }
+
+  getElement() {
+    if (!this._element) {
+      this._element = createElement(this.getTemplate());
+    }
+
+    return this._element;
+  }
+
+  removeElement() {
+    this._element = null;
+  }
+}
