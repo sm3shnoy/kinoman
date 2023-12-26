@@ -1,10 +1,25 @@
-export const createMovieListTemplate = (extra, title) => `
-<section class="films-list ${extra ? 'films-list--extra' : ''}">
-  ${
-    title
-      ? `<h2 class="films-list__title">${title}</h2>`
-      : '<h2 class="films-list__title visually-hidden">All movies. Upcoming</h2>'
+import { createElement } from '../utils/common';
+
+const createMovieListTemplate = () => `<div class="films-list__container"></div>`;
+
+export default class MovieList {
+  constructor() {
+    this._element = null;
   }
-  <div class="films-list__container"></div>
-  </section>
-`;
+
+  getTemplate() {
+    return createMovieListTemplate();
+  }
+
+  getElement() {
+    if (!this._element) {
+      this._element = createElement(this.getTemplate());
+    }
+
+    return this._element;
+  }
+
+  removeElement() {
+    this._element = null;
+  }
+}

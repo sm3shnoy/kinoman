@@ -1,4 +1,4 @@
-export const POSITION = {
+export const RenderPosition = {
   BEFOREEND: 'beforeend',
   AFTERBEGIN: 'afterbegin',
 };
