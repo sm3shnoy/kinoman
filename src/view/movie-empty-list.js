@@ -1,25 +1,9 @@
-import { createElement } from '../utils/common';
+import AbstractView from './abstract';
 
 const createMovieEmptyListTemplate = () => `<h2 class="films-list__title">There are no movies in our database</h2>`;
 
-export default class MovieEmptyList {
-  constructor() {
-    this._element = null;
-  }
-
+export default class MovieEmptyList extends AbstractView {
   getTemplate() {
     return createMovieEmptyListTemplate();
-  }
-
-  getElement() {
-    if (!this._element) {
-      this._element = createElement(this.getTemplate());
-    }
-
-    return this._element;
-  }
-
-  removeElement() {
-    this._element = null;
   }
 }
