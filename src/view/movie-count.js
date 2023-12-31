@@ -1,28 +1,17 @@
-import { createElement } from '../utils/common';
+import AbstractView from './abstract';
 
 const createMovieCounterTemplate = (moviesNumber) => `<section class="footer__statistics">
 <p>${moviesNumber} movies inside</p>
 </section>`;
 
-export default class MovieCounter {
+export default class MovieCounter extends AbstractView {
   constructor(moviesNumber) {
-    this._element = null;
+    super();
+
     this._moviesNumber = moviesNumber;
   }
 
   getTemplate() {
     return createMovieCounterTemplate(this._moviesNumber);
-  }
-
-  getElement() {
-    if (!this._element) {
-      this._element = createElement(this.getTemplate());
-    }
-
-    return this._element;
-  }
-
-  removeElement() {
-    this._element = null;
   }
 }

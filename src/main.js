@@ -1,5 +1,4 @@
-import { render } from './utils/common';
-import { RenderPosition } from './utils/const';
+import { render, RenderPosition, remove } from './utils/render';
 import BoardView from './view/board';
 import MovieView from './view/movie-card';
 import MovieCounterView from './view/movie-count';
@@ -27,35 +26,37 @@ const siteFooterElement = document.querySelector('.footer');
 
 const renderMovie = (movieListElement, movie) => {
   const movieComponent = new MovieView(movie);
+  const moviePopupElement = new MoviePopupView(movie);
+  const body = document.querySelector('body');
 
-  const openPopup = () => {
-    const moviePopupElement = new MoviePopupView(movie).getElement();
-    const moviePopupCloseButton = moviePopupElement.querySelector('.film-details__close-btn');
-    const body = document.querySelector('body');
-
-    const closePopup = () => {
-      moviePopupElement.remove();
-      body.classList.remove('hide-overflow');
-      moviePopupCloseButton.removeEventListener('click', closePopup);
-    };
-
-    const onEscKeyDown = (evt) => {
-      if (evt.key === 'Escape' || evt.key === 'Esc') {
-        evt.preventDefault();
-        closePopup();
-        document.removeEventListener('keydown', onEscKeyDown);
-      }
-    };
-
-    siteMainElement.append(moviePopupElement);
-    body.classList.add('hide-overflow');
-    document.addEventListener('keydown', onEscKeyDown);
-    moviePopupCloseButton.addEventListener('click', closePopup);
+  const onEscKeyDown = (evt) => {
+    if (evt.key === 'Escape' || evt.key === 'Esc') {
+      evt.preventDefault();
+      closePopup();
+    }
   };
 
-  render(movieListElement, movieComponent.getElement(), RenderPosition.BEFOREEND);
+  const closePopup = () => {
+    remove(moviePopupElement);
+    body.classList.remove('hide-overflow');
+  };
 
-  movieComponent.getElement().addEventListener('click', openPopup);
+  const openPopup = () => {
+    render(siteMainElement, moviePopupElement, RenderPosition.BEFOREEND);
+    body.classList.add('hide-overflow');
+  };
+
+  movieComponent.setOpenPopupClickHandler(() => {
+    openPopup();
+    document.addEventListener('keydown', onEscKeyDown);
+  });
+
+  moviePopupElement.setClosePopupClickHandler(() => {
+    closePopup();
+    document.removeEventListener('keydown', onEscKeyDown);
+  });
+
+  render(movieListElement, movieComponent, RenderPosition.BEFOREEND);
 };
 
 const renderBoard = (boardContainer, boardMovies) => {
@@ -63,36 +64,34 @@ const renderBoard = (boardContainer, boardMovies) => {
   const movieListContainer = new MovieListContainerView();
   const movieList = new MovieListView();
 
-  render(boardContainer, board.getElement(), RenderPosition.BEFOREEND);
-  render(board.getElement(), new SortView().getElement(), RenderPosition.BEFOREEND);
-  render(board.getElement(), movieListContainer.getElement(), RenderPosition.BEFOREEND);
-  render(movieListContainer.getElement(), movieList.getElement(), RenderPosition.BEFOREEND);
+  render(boardContainer, board, RenderPosition.BEFOREEND);
+  render(board, new SortView(), RenderPosition.BEFOREEND);
+  render(board, movieListContainer, RenderPosition.BEFOREEND);
+  render(movieListContainer, movieList, RenderPosition.BEFOREEND);
 
   if (boardMovies.length <= 0) {
-    render(board.getElement(), new MovieEmptyListView().getElement(), RenderPosition.BEFOREEND);
+    render(board, new MovieEmptyListView(), RenderPosition.BEFOREEND);
     return;
   }
 
   boardMovies
     .slice(0, Math.min(movies.length, MOVIES_COUNT_PER_STEP))
-    .forEach((boardMovie) => renderMovie(movieList.getElement(), boardMovie));
+    .forEach((boardMovie) => renderMovie(movieList, boardMovie));
 
   if (boardMovies.length > MOVIES_COUNT_PER_STEP) {
     let renderedMoviesCount = MOVIES_COUNT_PER_STEP;
     const showMoreButton = new ShowMoreButtonView();
-    render(movieListContainer.getElement(), showMoreButton.getElement(), RenderPosition.BEFOREEND);
+    render(movieListContainer, showMoreButton, RenderPosition.BEFOREEND);
 
-    showMoreButton.getElement().addEventListener('click', (evt) => {
-      evt.preventDefault();
-
+    showMoreButton.setShowMoreButtonClickHandler(() => {
       movies
         .slice(renderedMoviesCount, renderedMoviesCount + MOVIES_COUNT_PER_STEP)
-        .forEach((boardMovie) => renderMovie(movieList.getElement(), boardMovie));
+        .forEach((boardMovie) => renderMovie(movieList, boardMovie));
 
       renderedMoviesCount += MOVIES_COUNT_PER_STEP;
 
       if (boardMovies.length <= renderedMoviesCount) {
-        showMoreButton.getElement().remove();
+        remove(showMoreButton);
       }
     });
   }
@@ -102,23 +101,23 @@ const renderBoard = (boardContainer, boardMovies) => {
   const topRatedMovieList = new MovieListView();
   const mostCommentedMovieList = new MovieListView();
 
-  render(board.getElement(), topRatedMovieListContainer.getElement(), RenderPosition.BEFOREEND);
-  render(board.getElement(), mostCommentedMovieListContainer.getElement(), RenderPosition.BEFOREEND);
-  render(topRatedMovieListContainer.getElement(), topRatedMovieList.getElement(), RenderPosition.BEFOREEND);
-  render(mostCommentedMovieListContainer.getElement(), mostCommentedMovieList.getElement(), RenderPosition.BEFOREEND);
+  render(board, topRatedMovieListContainer, RenderPosition.BEFOREEND);
+  render(board, mostCommentedMovieListContainer, RenderPosition.BEFOREEND);
+  render(topRatedMovieListContainer, topRatedMovieList, RenderPosition.BEFOREEND);
+  render(mostCommentedMovieListContainer, mostCommentedMovieList, RenderPosition.BEFOREEND);
 
   for (let i = 0; i < MOVIES_COUNT_EXTRA; i++) {
-    renderMovie(topRatedMovieList.getElement(), movies[i]);
+    renderMovie(topRatedMovieList, movies[i]);
   }
 
   for (let i = 0; i < MOVIES_COUNT_EXTRA; i++) {
-    renderMovie(mostCommentedMovieList.getElement(), movies[i]);
+    renderMovie(mostCommentedMovieList, movies[i]);
   }
 
-  render(siteFooterElement, new MovieCounterView(movies.length).getElement(), RenderPosition.BEFOREEND);
+  render(siteFooterElement, new MovieCounterView(movies.length), RenderPosition.BEFOREEND);
 };
 
-render(siteHeaderElement, new ProfileView().getElement(), RenderPosition.BEFOREEND);
-render(siteMainElement, new FiltersView(filters).getElement(), RenderPosition.BEFOREEND);
+render(siteHeaderElement, new ProfileView(), RenderPosition.BEFOREEND);
+render(siteMainElement, new FiltersView(filters), RenderPosition.BEFOREEND);
 
 renderBoard(siteMainElement, movies);
