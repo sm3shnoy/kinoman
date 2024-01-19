@@ -19,7 +19,7 @@ export const render = (container, child, place) => {
       container.append(child);
       break;
     case RenderPosition.AFTERBEGIN:
-      container.prepend(place, child);
+      container.prepend(child);
       break;
     default:
       throw new Error('Unknown position ' + place);
