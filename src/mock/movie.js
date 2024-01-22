@@ -1,6 +1,7 @@
+import { nanoid } from 'nanoid';
 import dayjs from 'dayjs';
 import { getRandomInteger } from '../utils/common';
-import { generateComment, getRandomComments, randomComments } from './comments';
+import { getRandomComments } from './comments';
 
 const generateTitle = () => {
   const titles = [
@@ -125,6 +126,7 @@ export const generateMovie = () => {
     .map((item) => item.id);
 
   return {
+    id: nanoid(),
     poster: generatePoster(title),
     title: title,
     originalTitle: title,

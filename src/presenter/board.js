@@ -1,5 +1,4 @@
 import BoardView from '../view/board';
-import MovieView from '../view/movie-card';
 import MovieListView from '../view/movie-list';
 import MovieListContainerView from '../view/movie-list-container';
 import MovieEmptyListView from '../view/movie-empty-list';
@@ -7,21 +6,27 @@ import { RenderPosition, render, remove } from '../utils/render';
 import SortView from '../view/sort';
 import FiltersView from '../view/site-menu';
 import ShowMoreButtonView from '../view/show-more-button';
-import MoviePopupView from '../view/movie-popup';
+import { updateItem } from '../utils/common';
+import MoviePresenter from './movie';
 
 const MOVIES_COUNT_PER_STEP = 5;
-
-const body = document.querySelector('body');
 
 export default class Board {
   constructor(boardContainer) {
     this._boardContainer = boardContainer;
+    this._renderedMovieCount = MOVIES_COUNT_PER_STEP;
+    this._moviePresenter = {};
+    this._changeData = null;
 
     this._boardComponent = new BoardView();
     this._movieListContainerComponent = new MovieListContainerView();
     this._movieListComponent = new MovieListView();
     this._noMovieComponent = new MovieEmptyListView();
     this._sortComponent = new SortView();
+    this._showMoreButtonComponent = new ShowMoreButtonView();
+
+    this._handleMovieChange = this._handleMovieChange.bind(this);
+    this._handleShowMoreButtonClick = this._handleShowMoreButtonClick.bind(this);
   }
 
   init(boardMovies, filters) {
@@ -45,33 +50,22 @@ export default class Board {
     render(this._boardContainer, this._filtersComponent, RenderPosition.AFTERBEGIN);
   }
 
+  _handleMovieChange(updatedMovie) {
+    this._boardMovies = updateItem(this._boardMovies, updatedMovie);
+    this._moviePresenter[updatedMovie.id].init(updatedMovie);
+  }
+
   _renderMovie(movie) {
-    const movieComponent = new MovieView(movie);
-    const moviePopupElement = new MoviePopupView(movie);
+    const moviePresenter = new MoviePresenter(this._movieListComponent, this._handleMovieChange);
+    moviePresenter.init(movie);
+    this._moviePresenter[movie.id] = moviePresenter;
+  }
 
-    const closePopup = () => {
-      remove(moviePopupElement);
-      body.classList.remove('hide-overflow');
-      document.removeEventListener('keydown', onEscKeyDown);
-    };
-
-    const openPopup = () => {
-      render(this._boardContainer, moviePopupElement, RenderPosition.BEFOREEND);
-      body.classList.add('hide-overflow');
-      document.addEventListener('keydown', onEscKeyDown);
-    };
-
-    const onEscKeyDown = (evt) => {
-      if (evt.key === 'Escape' || evt.key === 'Esc') {
-        evt.preventDefault();
-        closePopup();
-      }
-    };
-
-    movieComponent.setOpenPopupClickHandler(openPopup);
-    moviePopupElement.setClosePopupClickHandler(closePopup);
-
-    render(this._movieListComponent, movieComponent, RenderPosition.BEFOREEND);
+  _clearMovieList() {
+    Object.values(this._movies).forEach((movie) => remove(movie));
+    this._movies = {};
+    this._renderedMovieCount = MOVIES_COUNT_PER_STEP;
+    remove(this._showMoreButtonComponent);
   }
 
   _renderMovies(from, to) {
@@ -90,23 +84,22 @@ export default class Board {
     render(this._board, this._noMovieComponent, RenderPosition.AFTERBEGIN);
   }
 
+  _handleShowMoreButtonClick() {
+    this._boardMovies
+      .slice(this._renderedMovieCount, this._renderedMovieCount + MOVIES_COUNT_PER_STEP)
+      .forEach((boardMovie) => this._renderMovie(boardMovie));
+
+    this._renderedMovieCount += MOVIES_COUNT_PER_STEP;
+
+    if (this._boardMovies.length <= this._renderedMovieCount) {
+      remove(this._showMoreButtonComponent);
+    }
+  }
+
   _renderShowMoreButton() {
-    let renderedMovieCount = MOVIES_COUNT_PER_STEP;
-    const showMoreButtonComponent = new ShowMoreButtonView();
+    render(this._movieListContainerComponent, this._showMoreButtonComponent, RenderPosition.BEFOREEND);
 
-    render(this._movieListContainerComponent, showMoreButtonComponent, RenderPosition.BEFOREEND);
-
-    showMoreButtonComponent.setClickHandler(() => {
-      this._boardMovies
-        .slice(renderedMovieCount, renderedMovieCount + MOVIES_COUNT_PER_STEP)
-        .forEach((boardMovie) => this._renderMovie(boardMovie));
-
-      renderedMovieCount += MOVIES_COUNT_PER_STEP;
-
-      if (this._boardMovies.length <= renderedMovieCount) {
-        remove(showMoreButtonComponent);
-      }
-    });
+    this._showMoreButtonComponent.setClickHandler(this._handleShowMoreButtonClick);
   }
 
   _renderBoard() {
