@@ -5,9 +5,10 @@ import { RenderPosition, render, remove, replace } from '../utils/render';
 const body = document.querySelector('body');
 
 export default class Movie {
-  constructor(movieListContainer, changeData) {
+  constructor(movieListContainer, changeData, changeMode) {
     this._movieListContainer = movieListContainer;
     this._changeData = changeData;
+    this._changeMode = changeMode;
 
     this._movieComponent = null;
     this._moviePopupComponent = null;
@@ -43,11 +44,12 @@ export default class Movie {
       return;
     }
 
-    if (this._movieListContainer.getElement().contains(prevMovieComponent.getElement())) {
+    if (!this._isOpen) {
       replace(this._movieComponent, prevMovieComponent);
     }
 
-    if (this._movieListContainer.getElement().contains(prevMoviePopupComponent.getElement())) {
+    if (this._isOpen) {
+      replace(this._movieComponent, prevMovieComponent);
       replace(this._moviePopupComponent, prevMoviePopupComponent);
     }
 
@@ -56,6 +58,18 @@ export default class Movie {
   }
 
   _handleOpenPopupClick() {
+    if (this._moviePopupComponent && this._isOpen) {
+      return;
+    }
+
+    this._changeMode();
+    this._isOpen = true;
+
+    this._moviePopupComponent.setFavoriteClickHandler(this._handleFavoriteClick);
+    this._moviePopupComponent.setWatchlistClickHandler(this._handleWatchlistClick);
+    this._moviePopupComponent.setWatchedClickHandler(this._handleWatchedClick);
+    this._moviePopupComponent.setClosePopupClickHandler(this._handleClosePopupClick);
+
     document.addEventListener('keydown', this._handleEscKeyDown);
     body.classList.add('hide-overflow');
 
@@ -70,10 +84,10 @@ export default class Movie {
   }
 
   _handleClosePopupClick() {
-    this._isOpen = false;
-    this._moviePopupComponent.getElement().remove();
+    remove(this._moviePopupComponent);
     body.classList.remove('hide-overflow');
     document.removeEventListener('keydown', this._handleEscKeyDown);
+    this._isOpen = false;
   }
 
   _handleFavoriteClick() {
@@ -88,8 +102,14 @@ export default class Movie {
     this._changeData(Object.assign({}, this._movie, { isWatched: !this._movie.isWatched }));
   }
 
-  _destroy() {
+  destroy() {
     remove(this._movieComponent);
     remove(this._moviePopupComponent);
+  }
+
+  resetView() {
+    if (this._isOpen) {
+      this._handleClosePopupClick();
+    }
   }
 }
