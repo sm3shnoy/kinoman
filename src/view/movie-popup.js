@@ -196,7 +196,7 @@ const createMoviePopupTemplate = (movie) => {
     </div>
     ${createInfoTemplate(movie)}
 
-    ${createControlsTemplate(isWatchlist, isWatched, isFavorite)}
+    ${createControlsTemplate(isFavorite, isWatched, isWatchlist)}
   </div>
 
   <div class="film-details__bottom-container">
@@ -219,6 +219,9 @@ export default class MoviePopup extends AbstractView {
     this._movie = movie;
 
     this._buttonCloseClickHander = this._buttonCloseClickHander.bind(this);
+    this._addToFavoriteClickHander = this._addToFavoriteClickHander.bind(this);
+    this._addToWathclistClickHandler = this._addToWathclistClickHandler.bind(this);
+    this._addToWathedClickHandler = this._addToWathedClickHandler.bind(this);
   }
 
   getTemplate() {
@@ -233,5 +236,43 @@ export default class MoviePopup extends AbstractView {
   setClosePopupClickHandler(callback) {
     this._callback.click = callback;
     this.getElement().querySelector('.film-details__close-btn').addEventListener('click', this._buttonCloseClickHander);
+  }
+
+  _addToFavoriteClickHander(evt) {
+    evt.preventDefault();
+    this._callback.favoriteClick();
+  }
+
+  setFavoriteClickHandler(callback) {
+    this._callback.favoriteClick = callback;
+    this.getElement()
+      .querySelector('.film-details__control-button--favorite')
+      .addEventListener('click', this._addToFavoriteClickHander);
+  }
+
+  _addToWathclistClickHandler(evt) {
+    evt.preventDefault();
+    evt.stopPropagation();
+    this._callback.watchlistClick();
+  }
+
+  setWatchlistClickHandler(callback) {
+    this._callback.watchlistClick = callback;
+    this.getElement()
+      .querySelector('.film-details__control-button--watchlist')
+      .addEventListener('click', this._addToWathclistClickHandler);
+  }
+
+  _addToWathedClickHandler(evt) {
+    evt.preventDefault();
+    evt.stopPropagation();
+    this._callback.watchedClick();
+  }
+
+  setWatchedClickHandler(callback) {
+    this._callback.watchedClick = callback;
+    this.getElement()
+      .querySelector('.film-details__control-button--watched')
+      .addEventListener('click', this._addToWathedClickHandler);
   }
 }
